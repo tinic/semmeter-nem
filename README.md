@@ -255,9 +255,22 @@ Note the new expected behaviour on idle channels: with `abs()` gone, a channel a
 current at PF ~0.01). That is correct, not a fault - direction is meaningless at
 zero power, so such channels cannot be judged for CT orientation until loaded.
 
+The reversed phase B CT was then physically flipped, confirming the reading
+tracks orientation as expected:
+
+| chan | A | P (W) before flip | P (W) after flip |
+| --- | --- | --- | --- |
+| phA | 2.14 | +209 | +194 |
+| phB | 16.04 | **-1951** | **+1845** |
+| sum of phases | | **-1742** | **+2039 (import)** |
+
+Both legs now read positive and the panel total is a believable overnight import.
+(The small magnitude change is the load easing off - phB went 16.57 A -> 16.04 A
+between samples - not a calibration shift; phB power factor stayed at ~0.98.)
+
 Still unverified: true **export** (negative on a correctly-oriented CT), which
 needs daylight and generation. The reversed-CT case proves the mechanism, but not
-that exported energy accumulates sensibly.
+that exported energy accumulates sensibly in the `+20` accumulator.
 
 The metering pipeline is gated on **mains zero-cross detection** (`match_en
 changed to %d`, `match_start falling edge detected`). With no mains voltage
