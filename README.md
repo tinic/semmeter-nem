@@ -45,8 +45,9 @@ remove the `abs()` and keep negative power out of the accumulator.
 | `0x0800634A` | `4240` negs r0, r0       | `da00` bge 0x0800634E    |
 | `0x0800634C` | `6120` str r0, [r4, #16] | `2000` movs r0, #0       |
 
-`+12` and `+16` hold signed power. The accumulator gets `max(P16, 0)`, so
-the energy field counts import only. Export energy has to be integrated from
+`+16` holds signed real power. `+12` is Vrms × Irms, which is never
+negative, so its `abs()` change has no effect. The accumulator gets
+`max(P16, 0)`, so the energy field counts import only. Export energy has to be integrated from
 the signed power on the host side.
 
 There is a third `abs()` at `0x0800631A` on a 16-bit field. It is left alone
@@ -136,17 +137,18 @@ The AT32F421 keeps 19 channel records (16 branch circuits, 3 mains phases) at
 | ------ | ---- | ----------------------------------------- |
 | +0     | u8   | channel id, 0–15 branch, 16/17/18 phase A/B/C |
 | +1     | u8   | status flags                              |
-| +4     | u16  | voltage                                   |
-| +6     | u16  | ×10, unsigned                             |
-| +8     | u16  | ×10, abs()'d (not patched)                |
-| +12    | i32  | power, patched to signed                  |
-| +16    | i32  | power, patched to signed, feeds the accumulator |
+| +4     | u16  | Vrms ×10                                  |
+| +6     | u16  | Irms ×10                                  |
+| +8     | u16  | "Ad" ×10 in the debug output, abs()'d     |
+| +12    | i32  | Vrms × Irms ×10, never negative           |
+| +16    | i32  | real power, signed, feeds the accumulator |
 | +20    | f32  | energy accumulator                        |
 | +24    | u8   | frequency                                 |
  
 The frame builder at `0x08004422` sends each record big-endian as `+0`,
 `+1`, `+2`, `+4`, `+6`, `+8`, `+12`, `+16`, `(uint32)roundf(+20)`, `+24`
-(22 bytes). The UART framing to the ESP32 is documented in
+(22 bytes). The link is two-way: `wifi_uart_RX_handler` accepts commands
+from the ESP32, and command 2 zeroes every `+20` (`0x08004F24`). The UART framing to the ESP32 is documented in
 [quky/sem-meter-esphome](https://github.com/quky/sem-meter-esphome). Only
 four of the 22 payload bytes are decoded there. The firmware's debug strings
 mention `angle`, `rp[m]`, `rp_adj[m]`, `rp_wh` and others, so the frame
