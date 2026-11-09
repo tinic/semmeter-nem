@@ -1,0 +1,4 @@
+# regenerable with tools/regen_disasm.sh
+full_disasm.txt
+*.pyc
+__pycache__/

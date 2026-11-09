@@ -1,0 +1,112 @@
+0x0011A  (FAFGF"F
+0x0015A  HF1F*FCF
+0x004A8  QA2F+F
+0x00A89  FPFYFBF
+0x00B47  F(F!F2F
+0x00DA6  [debug][%s]
+0x00DF3   SM_init
+0x01088  "F3F@FIF
+0x010DD  "%K F1F
+0x0136E  [F!F8F
+0x01578  0123456789abcdef
+0x0158C  0123456789ABCDEF
+0x019CE  [debug][%s]
+0x019DC  ADC response = %d  ,%x
+0x019F4  ADC ID = %02x  ,ID_DEFAULT %02x
+0x01A14  STATUS_ADDRESS = %02x 
+0x01A2C  CLOCK_ADDRESS = %02x 
+0x01A44  OPCODE_STANDBY = %02x 
+0x01A5C  CH0_CFG_ADDRESS = %02x 
+0x01A74  CH1_CFG_ADDRESS = %02x 
+0x01A8C  CH2_CFG_ADDRESS = %02x 
+0x01AA4  CH3_CFG_ADDRESS = %02x 
+0x01B96  nhgho`f`
+0x01C52  0`ph)F
+0x024AA   `9FXF
+0x024EC  0`!FPF
+0x0252E  (`1F F
+0x02E80  gOhNhOiN"F
+0x02ED8  WOXNXOYN
+0x03203   match_en changed to %d
+0x0321F  Hmatch_start falling edge detected
+0x03891  bpGPja
+0x03A6B  0``#H#M
+0x03A8B  0`` k@
+0x03BF1  `]H)F@h
+0x03D73   ========V_info angle %f.2,%f.2,%f.2 =======
+0x03DA4  ========V_info flg %x,%x,%x =======
+0x03DCC  ========V_info rms %f.2,%f.2,%f.2 =======
+0x03E4B  HA`AhO
+0x04372  !a`a i@
+0x0439B  IA`pG#
+0x0481E  [debug][%s]
+0x0482C  CRC error read_crc[%d]  crc[%d],retry times %d !
+0x04860  CRC error read_crc[%d]  crc[%d],my_system_para set to default !
+0x048A0  CRC OK! read_crc[%d]  crc[%d]
+0x0492E  [debug][%s]
+0x0493C  save my_system_para and crc[%d] !
+0x049D6  [debug][%s]
+0x049E7   my_system_para.test = %d
+0x04A04  my_system_para.onoff = %d
+0x04A20  [%d][%.2f][%f]
+0x04A30  ===============================
+0x04BA0  Error: Data length is not enough or exceeds maximum allowed.
+0x04BE0  Error: Incorrect header information.
+0x04C08  Error: Incorrect protocol version.
+0x04C30  Error: Data length does not match.
+0x04C5C  CRC8 checksum is valid: 0x%02X
+0x04CE8  Header: 0x%02X
+0x04CFC  Protocol Version: %u
+0x04D14  Packet ID: %u
+0x04D24  Service ID: %u
+0x04D38  CRC8 Checksum: 0x%02X
+0x04D50  Data Length: %u bytes
+0x04D68  Packet pointer is NULL.
+0x05049    a`i@
+0x05083    a`i@
+0x050C7  "[F8FAF
+0x050DD  "SF F)F
+0x050EF  "[F8FAF
+0x050FD  "SF F)F
+0x0510B  F1F Fe
+0x05490  'I(M(L 
+0x055C4  ===system_core_clock %fMhz===
+0x05622  [debug][%s]
+0x05630  [[[[[]]]]]]]]
+0x056CB   8p>aO
+0x056FB  F>aDF F
+0x0583E  ``BFXF
+0x05C37  M:FX=KF(`
+0x05C6B  HIFX8P
+0x05ECB  ?my_system_para.real_power_gain_adj[%d] = %f 
+0x05F18    "G0": {
+0x05F24      "RMS": [%.2f, %.2f, %.2f],
+0x05F44      "Angle": [%.2f, %.2f, %.2f]
+0x05F70    "Channels": [
+0x05F9C    "Frequency": %.2f,
+0x05FB4    "buf_size": %d,
+0x05FC8    "match_en": %d,
+0x0600C    "match_start": %d,
+0x06024    "ts": %.d } ]
+0x06044  "data":[{"I":555},
+0x060D5  `pG@jpGAbpG
+0x060FB  `pGBha
+0x06276  apEK$3
+0x064D6  A`pGBia
+0x066AC  d0h``h
+0x066DA  [debug][%s]
+0x066E8  NEW:time[%d]uart srv rcv[%d]:
+0x06A28  -----------------MCU reset from wdt-----------------!
+0x06A64  adcStartup
+0x06B58  my_para_save
+0x06B65  my_para_init
+0x06B72  my_para_show
+0x06B98  SM_handle_power_on
+0x06BAB  task_SM_init
+0x06BF5  LdG&S5?
+0x06CC6  dF&S5?
+0x06DF8  wifi_uart_RX_handler
+0x073C0  SM_handle_power_on
+0x073D4  {"Ch": %02d, "M": %03d, "I": xxx, "P": xxx, "angle": %03.0f, "Am": %03.0f, "Vrms0": %011.0f, "Vrms1": %011.0f, "Vrms2": %011.0f, "Irms": %013.0f, "rp[m]": %017.0f, "rp_adj[m]": %017.0f, "rp_wh": %05.1f, "adj": %05.3f, "av": %05.3f, "v0": %07.3f},
+0x074CC      {"Id": %d, "rawflg": %d,"flg": %d, "M": %2d, "R": %5.2f, "Ad": %6.2f, "Pa": %6.2f, "E": %6.2f}%s
+0x07534  Error: CRC8 checksum does not match. Calculated: 0x%02X, Received: 0x%02X

@@ -1,0 +1,13 @@
+39 NUL-terminated strings; mapping to referencing code
+
+string @    referenced from pool @    string
+--------------------------------------------------------------------------------------------------------------
+0x08006A64  0x080019C8                adcStartup
+0x08006B58  0x08004928                my_para_save
+0x08006B65  0x08004818                my_para_init
+0x08006B72  0x080049D0                my_para_show
+0x08006B98  0x08000DA0                SM_handle_power_on
+0x08006DF8  0x080066D4                wifi_uart_RX_handler
+0x080073C0  0x08006B94                SM_handle_power_on
+
+7 of 39 strings have a direct literal-pool reference
