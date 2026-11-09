@@ -228,8 +228,36 @@ no faults (`CFSR`/`HFSR` zero), uptime counter advancing, `adcStartup` re-runs
 and the ADS131M04 answers with ID `0x2405`, and the ESP32 still publishes to
 MQTT — so the whole chain survived the patch.
 
-**But the patch is still derived from static analysis and has not been validated
-against live measurements.** This is the main caveat and the remaining work.
+### VALIDATED on a live panel (2026-11-08, after dark)
+
+With the unit reinstalled and mains restored, the meter measures again and
+**signed power is confirmed working**. Sample at ~118 V:
+
+| chan | A | P (W) |
+| --- | --- | --- |
+| phA | 2.27 | **+209** |
+| phB | 16.57 | **-1951** |
+| ch14 | 0.57 | +0.6 |
+| ch15 | 0.59 | -0.2 |
+
+phB carries 16.57 A at PF ~1.0 - a resistive load, which after dark can only be
+consuming - and reports **negative**, i.e. that CT is physically reversed. Before
+the patch it would have read +1951 W and the reversal would have been invisible.
+That is the proof the sign survives to the host.
+
+**No host-side change was needed.** The host firmware already decodes the field
+as signed `int32`: a value of -9 arrives as `-9`, not `4294967287`. The sign
+support was always present downstream; the AT32F421 firmware was the only thing
+discarding it.
+
+Note the new expected behaviour on idle channels: with `abs()` gone, a channel at
+~0 W jitters either side of zero (ch14/ch15 above, both at <1 W with phantom CT
+current at PF ~0.01). That is correct, not a fault - direction is meaningless at
+zero power, so such channels cannot be judged for CT orientation until loaded.
+
+Still unverified: true **export** (negative on a correctly-oriented CT), which
+needs daylight and generation. The reversed-CT case proves the mechanism, but not
+that exported energy accumulates sensibly.
 
 The metering pipeline is gated on **mains zero-cross detection** (`match_en
 changed to %d`, `match_start falling edge detected`). With no mains voltage
