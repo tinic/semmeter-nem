@@ -20,39 +20,39 @@ cmp  r0, #0
 bge  skip
 negs r0, r0            ; abs()
 skip:
-str  r0, [r4, #12]
+str  r0, [r4, #16]
 ```
 
-It happens at two places, the two 32-bit power fields in each channel record.
-The second one, `+16`, also feeds the energy accumulator:
+`+16` is the real power in centiwatts. It also feeds the energy accumulator,
+a float in Wh, and the frame builder sends the rounded total:
 
 ```
-acc(+20, float) += (double)(uint32)P16 * 100.0 * dt_ms / 1000 / 3600
+acc(+20) += (double)(uint32)P16 / 100 * dt_ms / 1000 / 3600
+frame    =  (uint32)roundf(acc)
 ```
 
-The conversion is `__aeabi_ui2d` (`0x080006E6`), unsigned. That is harmless
-while `abs()` runs first, but a signed power would turn -189 W into
-4294967107 and add about 3e8 units every 2.5 s cycle. So the patch must
-remove the `abs()` and keep negative power out of the accumulator.
+Both conversions are unsigned (`__aeabi_ui2d` at `0x080006E6`,
+`__aeabi_f2uiz` at `0x08000732`). That is harmless while `abs()` runs
+first. With `abs()` removed alone, -189 W becomes 4294967107 and adds
+29826 Wh per 2.5 s cycle.
 
 ## The patch
 
 | Address      | Stock                    | Patched                  |
 | ------------ | ------------------------ | ------------------------ |
-| `0x08006336` | `4240` negs r0, r0       | `4200` tst r0, r0        |
-| `0x08006346` | `2800` cmp r0, #0        | `6120` str r0, [r4, #16] |
-| `0x08006348` | `da00` bge 0x0800634C    | `2800` cmp r0, #0        |
-| `0x0800634A` | `4240` negs r0, r0       | `da00` bge 0x0800634E    |
-| `0x0800634C` | `6120` str r0, [r4, #16] | `2000` movs r0, #0       |
+| `0x0800634A` | `4240` negs r0, r0       | `4200` tst r0, r0        |
+| `0x0800634E` | `bl 0x080006E6` ui2d     | `bl 0x080006C4` i2d      |
+| `0x080044D8` | `bl 0x08000732` f2uiz    | `bl 0x08000700` f2iz     |
 
-`+16` holds signed real power. `+12` is Vrms × Irms, which is never
-negative, so its `abs()` change has no effect. The accumulator gets
-`max(P16, 0)`, so the energy field counts import only. Export energy has to be integrated from
-the signed power on the host side.
+Power and energy are both signed. The energy field is the net energy of
+the channel in Wh, as an `int32`: it rises on import and falls on export.
+Import and export per interval are the positive and negative parts of its
+change.
 
-There is a third `abs()` at `0x0800631A` on a 16-bit field. It is left alone
-on purpose: a negative value would wrap in 16 bits and corrupt something the
-host reads as unsigned.
+`+12` is Vrms × Irms and is never negative, so its `abs()` at `0x08006336`
+is left as is. There is a third `abs()` at `0x0800631A` on a 16-bit field.
+It is left alone on purpose: a negative value would wrap in 16 bits and
+corrupt something the host reads as unsigned.
 
 Files:
 
@@ -64,9 +64,9 @@ firmware/SHA256SUMS
 
 ## Does it work
 
-Signed power was verified on a live panel on 2026-11-08. The MCU boots, the
-ADC answers, MQTT keeps publishing, and the ESP32 side already decodes the
-field as `int32`, so nothing needed changing there.
+Signed power was verified on a live panel on 2026-11-08 with the first
+change alone. The MCU boots, the ADC answers, MQTT keeps publishing, and the
+ESP32 side already decodes the power field as `int32`.
 
 With one mains CT deliberately clipped on backwards:
 
@@ -79,10 +79,17 @@ Flip the CT the right way round and phase B reads +1845 W. On stock firmware
 both would have read +1951 W and you would never know. Idle channels now
 wander a few tenths of a watt either side of zero, which is normal.
 
-The accumulator clamp was verified by emulating the patched block in
-Unicorn, not yet on a live panel. Without it, Solar 1, Solar 2 and circuit 6
-at -189, -120 and -191 W each gained exactly 29824 in the MQTT energy field
-per update. The formula above gives 29825 at dt = 2.5 s.
+With the first change alone, Solar 1, Solar 2 and circuit 6 at -189, -120
+and -191 W each gained exactly 29824 Wh in the MQTT energy field per update.
+
+The signed energy path was verified by emulating the patched code in
+Unicorn, not yet on a live panel. Over 2.5 s cycles at 1000 W, then -189 W,
+then -3000 W, the frame value goes 1, 1, 2, 3, then 3, 3, 2, 2, then 0, -2,
+-4, -6. Whether the ESP32 publishes a negative energy value correctly is
+not yet known.
+
+The accumulator is a 32-bit float. At 54 kWh it loses loads under about
+3 W; at 429 kWh, under about 22 W. This is stock behaviour.
 
 The records are not saved to flash (`my_para_save` writes `0x20000200`), so
 the AT32 energy counters restart from zero at reset.
@@ -141,8 +148,8 @@ The AT32F421 keeps 19 channel records (16 branch circuits, 3 mains phases) at
 | +6     | u16  | Irms ×10                                  |
 | +8     | u16  | "Ad" ×10 in the debug output, abs()'d     |
 | +12    | i32  | Vrms × Irms ×10, never negative           |
-| +16    | i32  | real power, signed, feeds the accumulator |
-| +20    | f32  | energy accumulator                        |
+| +16    | i32  | real power in cW, signed, feeds +20       |
+| +20    | f32  | net energy in Wh                          |
 | +24    | u8   | frequency                                 |
  
 The frame builder at `0x08004422` sends each record big-endian as `+0`,
