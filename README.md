@@ -219,8 +219,17 @@ publishes MQTT `SEMMETER/<MAC>/HA` carrying a 19x5 `sense` array.
 
 ## 6. Validation status
 
-**The patch is derived from static analysis and has not been validated against
-live measurements.** This is the honest state of things and the main caveat.
+**Flashed and verified on hardware (2026-11-08).** `tools/flash_patch.py` wrote
+the patched image after confirming the device matched the stock dump byte for
+byte; one 1 KB page at `0x08006000` was erased and reprogrammed, the page and
+then the full 64 KB image verified, flash re-locked and the target reset. Both
+sites now read `0x4200` in flash. Post-flash the firmware reboots cleanly:
+no faults (`CFSR`/`HFSR` zero), uptime counter advancing, `adcStartup` re-runs
+and the ADS131M04 answers with ID `0x2405`, and the ESP32 still publishes to
+MQTT — so the whole chain survived the patch.
+
+**But the patch is still derived from static analysis and has not been validated
+against live measurements.** This is the main caveat and the remaining work.
 
 The metering pipeline is gated on **mains zero-cross detection** (`match_en
 changed to %d`, `match_start falling edge detected`). With no mains voltage
