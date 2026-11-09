@@ -66,6 +66,47 @@ Flip the CT the right way round and phase B reads +1845 W. On stock firmware
 both would have read +1951 W and you would never know. Idle channels now
 wander a few tenths of a watt either side of zero, which is normal.
  
+## The energy counters
+
+The two-byte patch breaks the energy counters. Any channel that reads below
+zero, including an idle channel drifting a few tenths of a watt negative,
+gains about 2.98e8 accumulator units every 2.5 s.
+
+The accumulator at `0x0800634E` converts the `+16` power with
+`__aeabi_ui2d` (`0x080006E6`), not `__aeabi_i2d` (`0x080006C4`). A power of
+-189 becomes 4294967107 before it is multiplied by time:
+
+```
+acc(+20, float) += (double)(uint32)P16 * 100.0 * dt_ms / 1000 / 3600
+```
+
+The frame builder at `0x08004422` sends `(uint32)roundf(acc)`, through
+`0x08005124` and `0x08000732`. Observed on a live panel: Solar 1, Solar 2 and
+circuit 6 at -189, -120 and -191 each gained exactly 29824 in the MQTT
+energy field per update. The formula above gives 29825 at dt = 2.5 s.
+
+`at32f421_flash.energyfix.bin` keeps the signed `+16` but gives the
+accumulator `max(P, 0)`. The energy field then counts import only:
+
+| Address      | patched.bin            | energyfix.bin          |
+| ------------ | ---------------------- | ---------------------- |
+| `0x08006346` | `2800` cmp r0, #0      | `6120` str r0, [r4,#16] |
+| `0x08006348` | `da00` bge 0x0800634C  | `2800` cmp r0, #0      |
+| `0x0800634A` | `4200` tst r0, r0      | `da00` bge 0x0800634E  |
+| `0x0800634C` | `6120` str r0, [r4,#16] | `2000` movs r0, #0     |
+
+Some bits go from 0 to 1, so the page needs an erase. `flash_patch.py`
+erases and verifies:
+
+```
+python tools/flash_patch.py firmware/at32f421_flash.energyfix.bin \
+    --expect firmware/at32f421_flash.patched.bin
+```
+
+The records are not saved to flash (`my_para_save` writes `0x20000200`), so
+the AT32 counters restart from zero at reset. The ESP32 side was not
+analysed.
+
 ## Flashing it
  
 You need an SWD probe (ST-Link, CMSIS-DAP, Pico probe) and pyOCD. OpenOCD
